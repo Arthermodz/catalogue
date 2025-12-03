@@ -6,7 +6,7 @@
   <title>ARTHERMO — Catalogue</title>
   <style>
     :root { --brand: #221914; }
-    body { margin: 0; font-family: Arial, sans-serif; background: #f4f4f4; color: #222; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f4f4f4; }
     header {
       background: var(--brand);
       color: #fff;
@@ -15,12 +15,20 @@
       align-items: center;
       gap: 15px;
       flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
     header img { height: 50px; }
     header h1 { margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 1px; }
     #pdf-container { width: 100%; height: calc(100vh - 80px); overflow-y: auto; background: #fff; }
-    canvas { display: block; margin: auto 0; }
-    @media(max-width:720px){ header{flex-direction:row;align-items:center;} }
+    canvas { display: block; margin: 20px auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .note { text-align: center; color: #666; font-size: 14px; margin: 10px 0; }
+    @media(max-width:720px) {
+      header { flex-direction: row; align-items: center; }
+      canvas { margin: 15px auto; }
+      #pdf-container { height: calc(100vh - 70px); }
+    }
   </style>
 </head>
 <body>
@@ -30,31 +38,33 @@
   </header>
 
   <div id="pdf-container"></div>
+  <p class="note">Scroll through the catalogue below</p>
 
-  <!-- PDF.js library from CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.239/pdf.min.js"></script>
+  <!-- PDF.js library -->
+  <script src="https://unpkg.com/pdfjs-dist@3.11.239/build/pdf.min.js"></script>
   <script>
-    const url = 'catalogue.pdf'; // your PDF file
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 
+      'https://unpkg.com/pdfjs-dist@3.11.239/build/pdf.worker.min.js';
 
+    const url = 'catalogue.pdf'; // your PDF file in root
     const pdfContainer = document.getElementById('pdf-container');
 
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.239/pdf.worker.min.js';
-
     pdfjsLib.getDocument(url).promise.then(pdf => {
-      for(let i = 1; i <= pdf.numPages; i++){
+      for (let i = 1; i <= pdf.numPages; i++) {
         pdf.getPage(i).then(page => {
-          const viewport = page.getViewport({scale: 1.5});
+          const viewport = page.getViewport({ scale: 1.5 });
           const canvas = document.createElement('canvas');
           const context = canvas.getContext('2d');
-          canvas.height = viewport.height;
           canvas.width = viewport.width;
+          canvas.height = viewport.height;
 
-          page.render({canvasContext: context, viewport: viewport}).promise.then(() => {
+          page.render({ canvasContext: context, viewport: viewport }).promise.then(() => {
             pdfContainer.appendChild(canvas);
           });
         });
       }
+    }).catch(err => {
+      pdfContainer.innerHTML = `<p style="text-align:center;color:red;">Error loading PDF: ${err.message}</p>`;
     });
   </script>
 </body>
