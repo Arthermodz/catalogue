@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arthermo — Catalogue</title>
+  <style>
+    :root{--brand:#221914;}
+    body{margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:#f6f6f6;color:#222}
+    header{background:var(--brand);color:#fff;padding:18px 20px;display:flex;align-items:center;gap:14px}
+    .logo {font-weight:700;font-size:20px;letter-spacing:0.4px}
+    main{padding:18px;max-width:1200px;margin:18px auto}
+    .viewer {width:100%;height:80vh;border:1px solid #ddd;background:#fff}
+    .note{margin-top:8px;color:#666;font-size:14px}
+    @media(max-width:720px){ .viewer{height:65vh} header{padding:14px} }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">ARTHERMO</div>
+    <div style="opacity:0.9">— Catalogue</div>
+  </header>
+
+  <main>
+    <p class="note">If the PDF doesn’t load, click the link: <a href="catalog.pdf" target="_blank">Open catalogue (PDF)</a></p>
+    <iframe class="viewer" src="catalog.pdf#toolbar=1" title="Arthermo catalogue" frameborder="0"></iframe>
+  </main>
+</body>
+</html>
