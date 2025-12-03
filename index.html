@@ -7,13 +7,31 @@
   <style>
     :root { --brand: #221914; }
     body { margin: 0; font-family: Arial, sans-serif; background: #f4f4f4; }
-    header { background: var(--brand); color: #fff; padding: 15px 30px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; position: sticky; top:0; z-index:100; }
+    
+    header {
+      background: var(--brand);
+      color: #fff;
+      padding: 15px 30px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
     header img { height: 50px; }
     header h1 { margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 1px; }
-    #pdf-container { width:100%; height: calc(100vh - 80px); overflow-y: auto; background: #fff; }
+
+    #pdf-container { width: 100%; height: calc(100vh - 80px); overflow-y: auto; background: #fff; padding: 10px 0; }
     canvas { display: block; margin: 20px auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
     .note { text-align: center; color: #666; font-size: 14px; margin: 10px 0; }
-    @media(max-width:720px){ header{flex-direction:row; align-items:center;} canvas{margin:15px auto;} #pdf-container{height:calc(100vh - 70px);} }
+
+    @media(max-width:720px) {
+      header { flex-direction: row; align-items: center; }
+      canvas { margin: 15px auto; }
+      #pdf-container { height: calc(100vh - 70px); }
+    }
   </style>
 </head>
 <body>
@@ -25,28 +43,37 @@
   <div id="pdf-container"></div>
   <p class="note">Scroll through the catalogue below</p>
 
-  <!-- PDF.js library — using a valid version -->
+  <!-- PDF.js library -->
   <script src="https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.min.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.worker.min.js';
 
-    const url = 'catalogue.pdf';      // ensure this file exists in root
+    const url = 'catalogue.pdf'; // ensure this file exists in root
     const container = document.getElementById('pdf-container');
 
     pdfjsLib.getDocument(url).promise.then(pdf => {
-      for (let i = 1; i <= pdf.numPages; i++) {
-        pdf.getPage(i).then(page => {
-          const vp = page.getViewport({ scale: 1.5 });
+      const renderPage = (pageNum) => {
+        pdf.getPage(pageNum).then(page => {
+          const viewport = page.getViewport({ scale: 1.5 });
           const canvas = document.createElement('canvas');
-          canvas.width = vp.width;
-          canvas.height = vp.height;
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
           const context = canvas.getContext('2d');
-          page.render({ canvasContext: context, viewport: vp }).promise.then(() => {
+
+          page.render({ canvasContext: context, viewport: viewport }).promise.then(() => {
             container.appendChild(canvas);
+
+            // Render the next page sequentially
+            if (pageNum < pdf.numPages) {
+              renderPage(pageNum + 1);
+            }
           });
         });
-      }
+      };
+
+      // Start rendering with the first page
+      renderPage(1);
     }).catch(err => {
       container.innerHTML = `<p style="text-align:center;color:red;">Error loading PDF: ${err.message}</p>`;
     });
