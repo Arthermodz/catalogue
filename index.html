@@ -6,50 +6,64 @@
 <title>ARTHERMO — Catalogue</title>
 <style>
   :root { --brand: #221914; }
-  body { margin: 0; font-family: Arial, sans-serif; background: #f4f4f4; scroll-behavior: smooth; }
+  body { margin: 0; font-family: Arial, sans-serif; background: #f4f4f4; }
+
+  /* Header styling */
   header {
     background: var(--brand);
     color: #fff;
-    padding: 15px 20px;
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
+    padding: 10px;
     position: sticky;
     top: 0;
     z-index: 100;
     flex-wrap: wrap;
   }
-  header img { height: 50px; }
-  header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 1px; }
+  header img {
+    height: 40px;
+    flex-shrink: 0;
+  }
+  header h1 {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+    flex-grow: 1;
+    white-space: nowrap;
+  }
 
+  /* PDF container */
   #pdf-container {
     width: 100%;
-    min-height: calc(100vh - 80px);
+    min-height: calc(100vh - 60px);
     overflow-y: auto;
-    padding: 10px 0;
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding: 5px 0;
   }
 
+  /* Each page styling */
   canvas {
-    margin: 15px 0;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
     width: 100%;
-    max-width: 800px;
+    max-width: 800px; /* desktop max */
+    margin: 10px 0;
     border-radius: 5px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
   }
 
   .note {
     text-align: center;
     color: #666;
-    font-size: 14px;
-    margin: 10px 0;
+    font-size: 12px;
+    margin: 5px 0 10px 0;
   }
 
-  @media (max-width: 600px) {
-    header h1 { font-size: 18px; }
-    canvas { max-width: 95%; }
+  @media (max-width: 480px) {
+    header img { height: 35px; }
+    header h1 { font-size: 16px; }
+    canvas { margin: 8px 0; }
   }
 </style>
 </head>
@@ -61,24 +75,24 @@
 </header>
 
 <div id="pdf-container"></div>
+<p class="note">Scroll through the catalogue below</p>
 
-<!-- PDF.js library -->
+<!-- PDF.js -->
 <script src="https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.min.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.worker.min.js';
 
-const url = 'catalogue.pdf'; // make sure PDF is in root
+const url = 'catalogue.pdf';
 const container = document.getElementById('pdf-container');
 
 pdfjsLib.getDocument(url).promise.then(pdf => {
 
   const renderPage = (pageNum) => {
     pdf.getPage(pageNum).then(page => {
-
       const containerWidth = container.clientWidth;
       const viewport = page.getViewport({ scale: 1 });
-      const scale = containerWidth / viewport.width; // scale to fit container
+      const scale = containerWidth / viewport.width; // scale to fit container width
       const scaledViewport = page.getViewport({ scale });
 
       const canvas = document.createElement('canvas');
@@ -88,8 +102,6 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
 
       page.render({ canvasContext: context, viewport: scaledViewport }).promise.then(() => {
         container.appendChild(canvas);
-        // smooth scroll animation (optional)
-        canvas.scrollIntoView({ behavior: 'smooth' });
 
         if (pageNum < pdf.numPages) {
           renderPage(pageNum + 1); // sequential rendering
@@ -98,7 +110,7 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
     });
   };
 
-  renderPage(1); // start with first page
+  renderPage(1);
 
 }).catch(err => {
   container.innerHTML = `<p style="text-align:center;color:red;">Error loading PDF: ${err.message}</p>`;
