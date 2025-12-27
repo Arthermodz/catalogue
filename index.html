@@ -167,25 +167,27 @@ canvas {
 
   <div class="search">
     <input type="number" id="pageInput" placeholder="Page" min="1">
-    <button id="goButton">Go</button>
+    <button onclick="goToPage(Number(pageInput.value))">Go</button>
   </div>
 </div>
 
 <div id="pdf-container"></div>
 
 <!-- PDF.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.min.js"></script>
+<script src="https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.min.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc =
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js';
+  'https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.worker.min.js';
 
 const url = 'catalogue.pdf';
 const container = document.getElementById('pdf-container');
 const categoryList = document.getElementById('category-list');
 const dropdown = document.querySelector('.dropdown');
 const pageInput = document.getElementById('pageInput');
-const goButton = document.getElementById('goButton');
 
+let pagePositions = [];
+
+/* ===== CATEGORIES ===== */
 const categories = {
   "WINNER": 3,
   "ELBAHDJA": 5,
@@ -197,12 +199,15 @@ const categories = {
   "AURORE": 17,
   "ECLIPSE": 19,
   "GHOUL": 5,
+
   "MITIGEUR CUISINE": 23,
   "COLONNE DE DOUCHE": 27,
+
   "ROBINET LAVABO": 37,
   "ROBINET ABLUTION": 38,
   "ROBINET DOUBLE SERVICE": 41,
   "ROBINET JARDIN": 42,
+
   "FLEXIBLE ET DOUCHETTE": 45,
   "BONDE POUSSOIRE": 46,
   "VANNES SPHÉRIQUE": 47,
@@ -210,95 +215,68 @@ const categories = {
   "CLAPET ANTI-RETOUR": 50,
   "ROBINET ARRÊT DE GAZ": 51,
   "FLEXIBLE DE GAZ": 52,
+
   "PIÈCES À SERTIR": 53,
   "PIÈCES À VISSER": 58,
   "COLLECTEURS": 63,
   "JEUX DE ROBINET": 65
 };
 
-// Build category buttons
+/* Toggle dropdown on mobile */
+document.querySelector('.dropbtn').onclick = () => {
+  dropdown.classList.toggle('open');
+};
+
+/* Build category list */
 Object.entries(categories).forEach(([name, page]) => {
   const btn = document.createElement('button');
   btn.textContent = name;
+  btn.onclick = () => {
+    goToPage(page);
+    dropdown.classList.remove('open');
+  };
   categoryList.appendChild(btn);
 });
 
-// Toggle dropdown
-document.querySelector('.dropbtn').onclick = () => dropdown.classList.toggle('open');
-
-let pdfDoc = null;
-let renderedPages = {}; // canvases by page number
-
-// Load PDF
+/* Load PDF */
 pdfjsLib.getDocument(url).promise.then(pdf => {
-  pdfDoc = pdf;
+
+  const renderPage = (num) => {
+    pdf.getPage(num).then(page => {
+
+      const containerWidth = container.clientWidth;
+      let scale = 1.5;
+      if(containerWidth <= 480) scale = 2.0;
+      if(containerWidth <= 360) scale = 2.5;
+
+      const viewport = page.getViewport({ scale });
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      page.render({ canvasContext: ctx, viewport }).promise.then(() => {
+        container.appendChild(canvas);
+        pagePositions[num] = canvas.offsetTop;
+
+        if(num < pdf.numPages) renderPage(num + 1);
+      });
+    });
+  };
+
   renderPage(1);
 });
 
-// Render single page lazily
-function renderPage(num) {
-  if(renderedPages[num]) return renderedPages[num];
-
-  pdfDoc.getPage(num).then(page => {
-    const containerWidth = container.clientWidth;
-    let scale = 1.5;
-    if(containerWidth <= 480) scale = 2.0;
-    if(containerWidth <= 360) scale = 2.5;
-
-    const viewport = page.getViewport({ scale });
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    canvas.dataset.page = num;
-
-    page.render({ canvasContext: ctx, viewport }).promise.then(() => {
-      renderedPages[num] = canvas;
-    });
-
-    // Insert in order
-    if(num === 1) container.appendChild(canvas);
-    else {
-      let inserted = false;
-      for(let i=num-1; i>=1; i--) {
-        if(renderedPages[i]) {
-          renderedPages[i].after(canvas);
-          inserted = true;
-          break;
-        }
-      }
-      if(!inserted) container.prepend(canvas);
-    }
+/* Navigation */
+function goToPage(num) {
+  if(!pagePositions[num]) return;
+  window.scrollTo({
+    top: pagePositions[num] - 130,
+    behavior: 'smooth'
   });
 }
-
-// Scroll to page, render if needed
-function scrollToPage(num) {
-  if(!pdfDoc) return;
-  if(!renderedPages[num]) renderPage(num);
-  setTimeout(() => {
-    const target = renderedPages[num];
-    if(target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      window.scrollBy(0, -130);
-    }
-  }, 300);
-}
-
-// Category buttons
-Array.from(document.querySelectorAll('#category-list button')).forEach(btn => {
-  btn.onclick = () => {
-    const page = categories[btn.textContent];
-    scrollToPage(page);
-    dropdown.classList.remove('open');
-  };
-});
-
-// Page input
-goButton.onclick = () => {
-  const pageNum = Number(pageInput.value);
-  if(pdfDoc && pageNum>=1 && pageNum<=pdfDoc.numPages) scrollToPage(pageNum);
-};
 </script>
+
 </body>
 </html>
