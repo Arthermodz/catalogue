@@ -273,7 +273,9 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
 
 /* Navigation */
 function goToPage(num) {
-  const target = document.querySelector(`canvas[data-page="${num}"]`);
+  const realPage = num + PAGE_OFFSET;
+
+  const target = document.querySelector(`canvas[data-page="${realPage}"]`);
   if (!target) return;
 
   target.scrollIntoView({
@@ -281,8 +283,7 @@ function goToPage(num) {
     block: 'start'
   });
 
-  // Small offset for sticky header
-  window.scrollBy(0, -130);
+  window.scrollBy(0, -130); // header offset
 }
 
   });
