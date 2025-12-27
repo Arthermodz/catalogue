@@ -42,38 +42,91 @@ header h1 {
   background: #fff;
   padding: 8px;
   display: flex;
-  gap: 8px;
+  justify-content: space-between;
   align-items: center;
-  overflow-x: auto;
+  gap: 10px;
   position: sticky;
   top: 60px;
   z-index: 90;
   border-bottom: 1px solid #ddd;
 }
 
-.controls::-webkit-scrollbar { display: none; }
+/* Dropdown */
+.dropdown {
+  position: relative;
+}
 
-.controls button {
+.dropbtn {
   background: var(--brand);
   color: #fff;
   border: none;
   border-radius: 20px;
-  padding: 6px 14px;
+  padding: 6px 16px;
   font-size: 14px;
   cursor: pointer;
-  white-space: nowrap;
 }
 
-.controls input {
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 110%;
+  left: 0;
+  background: #fff;
+  width: 230px;
+  max-height: 230px;
+  overflow-y: auto;
+  box-shadow: 0 6px 20px rgba(0,0,0,.2);
+  border-radius: 8px;
+  padding: 6px;
+}
+
+.dropdown-content button {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.dropdown-content button:hover {
+  background: #f0f0f0;
+}
+
+/* Desktop hover */
+@media (hover:hover) {
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+}
+
+/* Mobile open */
+.dropdown.open .dropdown-content {
+  display: block;
+}
+
+/* Search */
+.search {
+  display: flex;
+  gap: 6px;
+}
+
+.search input {
   width: 70px;
   padding: 6px;
   border-radius: 6px;
   border: 1px solid #ccc;
-  font-size: 14px;
 }
 
-.controls .go-btn {
+.search button {
   background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
 }
 
 /* ===== PDF ===== */
@@ -106,8 +159,16 @@ canvas {
   <h1>ARTHERMO — Catalogue</h1>
 </header>
 
-<div class="controls" id="category-bar">
-  <!-- Categories injected by JS -->
+<div class="controls">
+  <div class="dropdown">
+    <button class="dropbtn">Categories ▾</button>
+    <div class="dropdown-content" id="category-list"></div>
+  </div>
+
+  <div class="search">
+    <input type="number" id="pageInput" placeholder="Page" min="1">
+    <button onclick="goToPage(Number(pageInput.value))">Go</button>
+  </div>
 </div>
 
 <div id="pdf-container"></div>
@@ -120,64 +181,64 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 
 const url = 'catalogue.pdf';
 const container = document.getElementById('pdf-container');
-const categoryBar = document.getElementById('category-bar');
+const categoryList = document.getElementById('category-list');
+const dropdown = document.querySelector('.dropdown');
+const pageInput = document.getElementById('pageInput');
 
 let pagePositions = [];
 
-/* ===== CATEGORIES (EDIT THESE) ===== */
+/* ===== CATEGORIES ===== */
 const categories = {
-  WINNER: 3,
-  "EL-BAHDJA": 5,
-  FENNEC: 7,
-  FIORI: 9,
-  LINE: 11,
-  RIO: 13,
-  AZUR: 15,
-  AURORE: 17,
-  ECLIPSE: 19,
-  GHOUFI: 5,
+  "WINNER": 3,
+  "ELBAHDJA": 5,
+  "FENNEC": 7,
+  "FIORI": 9,
+  "LINE": 11,
+  "RIO": 13,
+  "AZUR": 15,
+  "AURORE": 17,
+  "ECLIPSE": 19,
+  "GHOUL": 5,
+
   "MITIGEUR CUISINE": 23,
   "COLONNE DE DOUCHE": 27,
+
   "ROBINET LAVABO": 37,
   "ROBINET ABLUTION": 38,
   "ROBINET DOUBLE SERVICE": 41,
   "ROBINET JARDIN": 42,
+
   "FLEXIBLE ET DOUCHETTE": 45,
   "BONDE POUSSOIRE": 46,
   "VANNES SPHÉRIQUE": 47,
-  FLOTTEUR: 49,
+  "FLOTTEUR": 49,
   "CLAPET ANTI-RETOUR": 50,
   "ROBINET ARRÊT DE GAZ": 51,
   "FLEXIBLE DE GAZ": 52,
-  "PIÉCES À SERTIR": 53,
-  "PIÉCES À VISSER": 58,
-  "COLLECTEURS": 63,
-  "JEUX DE ROBINET": 65,
 
+  "PIÈCES À SERTIR": 53,
+  "PIÈCES À VISSER": 58,
+  "COLLECTEURS": 63,
+  "JEUX DE ROBINET": 65
 };
 
-/* ===== BUILD CATEGORY UI ===== */
+/* Toggle dropdown on mobile */
+document.querySelector('.dropbtn').onclick = () => {
+  dropdown.classList.toggle('open');
+};
+
+/* Build category list */
 Object.entries(categories).forEach(([name, page]) => {
   const btn = document.createElement('button');
   btn.textContent = name;
-  btn.onclick = () => goToPage(page);
-  categoryBar.appendChild(btn);
+  btn.onclick = () => {
+    goToPage(page);
+    dropdown.classList.remove('open');
+  };
+  categoryList.appendChild(btn);
 });
 
-/* Page input */
-const input = document.createElement('input');
-input.type = 'number';
-input.placeholder = 'Page';
-input.min = 1;
-categoryBar.appendChild(input);
-
-const goBtn = document.createElement('button');
-goBtn.textContent = 'Go';
-goBtn.className = 'go-btn';
-goBtn.onclick = () => goToPage(Number(input.value));
-categoryBar.appendChild(goBtn);
-
-/* ===== LOAD PDF ===== */
+/* Load PDF */
 pdfjsLib.getDocument(url).promise.then(pdf => {
 
   const renderPage = (num) => {
@@ -207,11 +268,11 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
   renderPage(1);
 });
 
-/* ===== NAVIGATION ===== */
+/* Navigation */
 function goToPage(num) {
   if(!pagePositions[num]) return;
   window.scrollTo({
-    top: pagePositions[num] - 120,
+    top: pagePositions[num] - 130,
     behavior: 'smooth'
   });
 }
