@@ -217,36 +217,31 @@ const categories = {
   "JEUX DE ROBINET": 65
 };
 
+/* Build category list */
+Object.entries(categories).forEach(([name, page]) => {
+  const btn = document.createElement('button');
+  btn.textContent = name;
+  categoryList.appendChild(btn);
+});
+
 /* Toggle dropdown on mobile */
 document.querySelector('.dropbtn').onclick = () => {
   dropdown.classList.toggle('open');
 };
 
-/* Build category list */
-Object.entries(categories).forEach(([name, page]) => {
-  const btn = document.createElement('button');
-  btn.textContent = name;
-  btn.onclick = () => {
-    goToPage(page);
-    dropdown.classList.remove('open');
-  };
-  categoryList.appendChild(btn);
-});
-
 /* Load PDF and track canvases */
 pdfjsLib.getDocument(url).promise.then(pdf => {
   const renderedCanvases = [];
+  let pagesRendered = 0;
 
   const renderPage = (num) => {
     pdf.getPage(num).then(page => {
-
       const containerWidth = container.clientWidth;
       let scale = 1.5;
       if(containerWidth <= 480) scale = 2.0;
       if(containerWidth <= 360) scale = 2.5;
 
       const viewport = page.getViewport({ scale });
-
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       canvas.width = viewport.width;
@@ -256,35 +251,49 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
         canvas.dataset.page = num;
         container.appendChild(canvas);
         renderedCanvases[num] = canvas;
+        pagesRendered++;
 
-        if(num < pdf.numPages) renderPage(num + 1);
+        if(num < pdf.numPages) {
+          renderPage(num + 1);
+        } else {
+          // All pages rendered, setup navigation
+          setupNavigation(renderedCanvases, pdf.numPages);
+        }
       });
     });
   };
 
   renderPage(1);
+});
 
-  /* Navigation function */
+/* Setup navigation after pages are rendered */
+function setupNavigation(renderedCanvases, totalPages) {
   window.goToPage = function(num) {
+    if(num < 1 || num > totalPages) return;
     const target = renderedCanvases[num];
-    if (!target) return;
-
-    target.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start'
-    });
-
+    if(!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     window.scrollBy(0, -130); // header offset
   };
 
-  /* Search button */
+  // Category buttons
+  Object.entries(categories).forEach(([name, page]) => {
+    const btn = Array.from(document.querySelectorAll('#category-list button'))
+                     .find(b => b.textContent === name);
+    if(btn) {
+      btn.onclick = () => {
+        goToPage(page);
+        dropdown.classList.remove('open');
+      };
+    }
+  });
+
+  // Search bar
   goButton.onclick = () => {
     const pageNum = Number(pageInput.value);
-    if(pageNum >= 1 && pageNum <= pdf.numPages) {
-      goToPage(pageNum);
-    }
+    goToPage(pageNum);
   };
-});
+}
 </script>
 </body>
 </html>
