@@ -186,7 +186,6 @@ const dropdown = document.querySelector('.dropdown');
 const pageInput = document.getElementById('pageInput');
 const goButton = document.getElementById('goButton');
 
-/* ===== CATEGORIES ===== */
 const categories = {
   "WINNER": 3,
   "ELBAHDJA": 5,
@@ -217,83 +216,89 @@ const categories = {
   "JEUX DE ROBINET": 65
 };
 
-/* Build category list */
+// Build category buttons
 Object.entries(categories).forEach(([name, page]) => {
   const btn = document.createElement('button');
   btn.textContent = name;
   categoryList.appendChild(btn);
 });
 
-/* Toggle dropdown on mobile */
-document.querySelector('.dropbtn').onclick = () => {
-  dropdown.classList.toggle('open');
-};
+// Toggle dropdown
+document.querySelector('.dropbtn').onclick = () => dropdown.classList.toggle('open');
 
-/* Load PDF and track canvases */
+let pdfDoc = null;
+let renderedPages = {}; // canvases by page number
+
+// Load PDF
 pdfjsLib.getDocument(url).promise.then(pdf => {
-  const renderedCanvases = [];
-  let pagesRendered = 0;
-
-  const renderPage = (num) => {
-    pdf.getPage(num).then(page => {
-      const containerWidth = container.clientWidth;
-      let scale = 1.5;
-      if(containerWidth <= 480) scale = 2.0;
-      if(containerWidth <= 360) scale = 2.5;
-
-      const viewport = page.getViewport({ scale });
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-
-      page.render({ canvasContext: ctx, viewport }).promise.then(() => {
-        canvas.dataset.page = num;
-        container.appendChild(canvas);
-        renderedCanvases[num] = canvas;
-        pagesRendered++;
-
-        if(num < pdf.numPages) {
-          renderPage(num + 1);
-        } else {
-          // All pages rendered, setup navigation
-          setupNavigation(renderedCanvases, pdf.numPages);
-        }
-      });
-    });
-  };
-
+  pdfDoc = pdf;
   renderPage(1);
 });
 
-/* Setup navigation after pages are rendered */
-function setupNavigation(renderedCanvases, totalPages) {
-  window.goToPage = function(num) {
-    if(num < 1 || num > totalPages) return;
-    const target = renderedCanvases[num];
-    if(!target) return;
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    window.scrollBy(0, -130); // header offset
-  };
+// Render single page lazily
+function renderPage(num) {
+  if(renderedPages[num]) return renderedPages[num];
 
-  // Category buttons
-  Object.entries(categories).forEach(([name, page]) => {
-    const btn = Array.from(document.querySelectorAll('#category-list button'))
-                     .find(b => b.textContent === name);
-    if(btn) {
-      btn.onclick = () => {
-        goToPage(page);
-        dropdown.classList.remove('open');
-      };
+  pdfDoc.getPage(num).then(page => {
+    const containerWidth = container.clientWidth;
+    let scale = 1.5;
+    if(containerWidth <= 480) scale = 2.0;
+    if(containerWidth <= 360) scale = 2.5;
+
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    canvas.dataset.page = num;
+
+    page.render({ canvasContext: ctx, viewport }).promise.then(() => {
+      renderedPages[num] = canvas;
+    });
+
+    // Insert in order
+    if(num === 1) container.appendChild(canvas);
+    else {
+      let inserted = false;
+      for(let i=num-1; i>=1; i--) {
+        if(renderedPages[i]) {
+          renderedPages[i].after(canvas);
+          inserted = true;
+          break;
+        }
+      }
+      if(!inserted) container.prepend(canvas);
     }
   });
-
-  // Search bar
-  goButton.onclick = () => {
-    const pageNum = Number(pageInput.value);
-    goToPage(pageNum);
-  };
 }
+
+// Scroll to page, render if needed
+function scrollToPage(num) {
+  if(!pdfDoc) return;
+  if(!renderedPages[num]) renderPage(num);
+  setTimeout(() => {
+    const target = renderedPages[num];
+    if(target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollBy(0, -130);
+    }
+  }, 300);
+}
+
+// Category buttons
+Array.from(document.querySelectorAll('#category-list button')).forEach(btn => {
+  btn.onclick = () => {
+    const page = categories[btn.textContent];
+    scrollToPage(page);
+    dropdown.classList.remove('open');
+  };
+});
+
+// Page input
+goButton.onclick = () => {
+  const pageNum = Number(pageInput.value);
+  if(pdfDoc && pageNum>=1 && pageNum<=pdfDoc.numPages) scrollToPage(pageNum);
+};
 </script>
 </body>
 </html>
