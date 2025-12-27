@@ -167,7 +167,7 @@ canvas {
 
   <div class="search">
     <input type="number" id="pageInput" placeholder="Page" min="1">
-    <button onclick="goToPage(Number(pageInput.value))">Go</button>
+    <button id="goButton">Go</button>
   </div>
 </div>
 
@@ -184,6 +184,7 @@ const container = document.getElementById('pdf-container');
 const categoryList = document.getElementById('category-list');
 const dropdown = document.querySelector('.dropdown');
 const pageInput = document.getElementById('pageInput');
+const goButton = document.getElementById('goButton');
 
 /* ===== CATEGORIES ===== */
 const categories = {
@@ -232,8 +233,9 @@ Object.entries(categories).forEach(([name, page]) => {
   categoryList.appendChild(btn);
 });
 
-/* Load PDF */
+/* Load PDF and track canvases */
 pdfjsLib.getDocument(url).promise.then(pdf => {
+  const renderedCanvases = [];
 
   const renderPage = (num) => {
     pdf.getPage(num).then(page => {
@@ -251,8 +253,9 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
       canvas.height = viewport.height;
 
       page.render({ canvasContext: ctx, viewport }).promise.then(() => {
-        container.appendChild(canvas);
         canvas.dataset.page = num;
+        container.appendChild(canvas);
+        renderedCanvases[num] = canvas;
 
         if(num < pdf.numPages) renderPage(num + 1);
       });
@@ -260,20 +263,28 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
   };
 
   renderPage(1);
+
+  /* Navigation function */
+  window.goToPage = function(num) {
+    const target = renderedCanvases[num];
+    if (!target) return;
+
+    target.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+
+    window.scrollBy(0, -130); // header offset
+  };
+
+  /* Search button */
+  goButton.onclick = () => {
+    const pageNum = Number(pageInput.value);
+    if(pageNum >= 1 && pageNum <= pdf.numPages) {
+      goToPage(pageNum);
+    }
+  };
 });
-
-/* Navigation */
-function goToPage(num) {
-  const target = document.querySelector(`canvas[data-page="${num}"]`);
-  if (!target) return;
-
-  target.scrollIntoView({
-    behavior: 'smooth',
-    block: 'start'
-  });
-
-  window.scrollBy(0, -130); // header offset
-}
 </script>
 </body>
 </html>
