@@ -185,8 +185,7 @@ const categoryList = document.getElementById('category-list');
 const dropdown = document.querySelector('.dropdown');
 const pageInput = document.getElementById('pageInput');
 
- const PAGE_OFFSET = 1;
-
+  const PAGE_OFFSET = 1;
 
 let pagePositions = [];
 
@@ -201,7 +200,7 @@ const categories = {
   "AZUR": 15,
   "AURORE": 17,
   "ECLIPSE": 19,
-  "GHOUFI": 5,
+  "GHOUL": 5,
 
   "MITIGEUR CUISINE": 23,
   "COLONNE DE DOUCHE": 27,
@@ -273,19 +272,12 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
 
 /* Navigation */
 function goToPage(num) {
-  const realPage = num + PAGE_OFFSET;
-
-  const target = document.querySelector(`canvas[data-page="${realPage}"]`);
-  if (!target) return;
-
-  target.scrollIntoView({
-    behavior: 'smooth',
-    block: 'start'
+  if(!pagePositions[num]) return;
+  window.scrollTo({
+    top: pagePositions[num] - 130,
+    behavior: 'smooth'
   });
-
-  window.scrollBy(0, -130); // header offset
 }
-
 </script>
 
 </body>
