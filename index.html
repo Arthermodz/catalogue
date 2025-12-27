@@ -159,11 +159,10 @@ canvas {
   <h1>ARTHERMO — Catalogue</h1>
 </header>
 
-<div class="controls">
-  <div class="dropdown">
-    <button class="dropbtn">Categories ▾</button>
-    <div class="dropdown-content" id="category-list"></div>
-  </div>
+<div class="search">
+  <input type="number" id="pageInput" placeholder="Page" min="1">
+  <button onclick="goToPage(Number(pageInput.value) + 1)">Go</button>
+</div>
 
   <div class="search">
     <input type="number" id="pageInput" placeholder="Page" min="1">
@@ -184,43 +183,43 @@ const container = document.getElementById('pdf-container');
 const categoryList = document.getElementById('category-list');
 const dropdown = document.querySelector('.dropdown');
 const pageInput = document.getElementById('pageInput');
-const PAGE_OFFSET = 1;
+
 
 let pagePositions = [];
 
 /* ===== CATEGORIES ===== */
 const categories = {
-  "WINNER": 3,
-  "ELBAHDJA": 5,
-  "FENNEC": 7,
-  "FIORI": 9,
-  "LINE": 11,
-  "RIO": 13,
-  "AZUR": 15,
-  "AURORE": 17,
-  "ECLIPSE": 19,
-  "GHOUL": 5,
+  "WINNER": 4,
+  "ELBAHDJA": 6,
+  "FENNEC": 8,
+  "FIORI": 10,
+  "LINE": 12,
+  "RIO": 14,
+  "AZUR": 16,
+  "AURORE": 18,
+  "ECLIPSE": 20,
+  "GHOUFI": 22,
 
-  "MITIGEUR CUISINE": 23,
-  "COLONNE DE DOUCHE": 27,
+  "MITIGEUR CUISINE": 24,
+  "COLONNE DE DOUCHE": 28,
 
-  "ROBINET LAVABO": 37,
-  "ROBINET ABLUTION": 38,
-  "ROBINET DOUBLE SERVICE": 41,
-  "ROBINET JARDIN": 42,
+  "ROBINET LAVABO": 38,
+  "ROBINET ABLUTION": 39,
+  "ROBINET DOUBLE SERVICE": 42,
+  "ROBINET JARDIN": 43,
 
-  "FLEXIBLE ET DOUCHETTE": 45,
-  "BONDE POUSSOIRE": 46,
-  "VANNES SPHÉRIQUE": 47,
-  "FLOTTEUR": 49,
-  "CLAPET ANTI-RETOUR": 50,
-  "ROBINET ARRÊT DE GAZ": 51,
-  "FLEXIBLE DE GAZ": 52,
+  "FLEXIBLE ET DOUCHETTE": 46,
+  "BONDE POUSSOIRE": 47,
+  "VANNES SPHÉRIQUE": 48,
+  "FLOTTEUR": 50,
+  "CLAPET ANTI-RETOUR": 51,
+  "ROBINET ARRÊT DE GAZ": 52,
+  "FLEXIBLE DE GAZ": 53,
 
-  "PIÈCES À SERTIR": 53,
-  "PIÈCES À VISSER": 58,
-  "COLLECTEURS": 63,
-  "JEUX DE ROBINET": 65
+  "PIÈCES À SERTIR": 54,
+  "PIÈCES À VISSER": 59,
+  "COLLECTEURS": 64,
+  "JEUX DE ROBINET": 66
 };
 
 /* Toggle dropdown on mobile */
