@@ -1,6 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARTHERMO — Catalogue</title>
+
+<style>
+:root { --brand:#221914; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+}
+
+/* ===== HEADER ===== */
+header {
+  background: var(--brand);
+  color: #fff;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+header img {
+  height: 40px;
+}
+
+header h1 {
+  font-size: 18px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* ===== CONTROLS ===== */
+.controls {
+  background: #fff;
+  padding: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 60px;
+  z-index: 90;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Dropdown */
+.dropdown {
+  position: relative;
+}
+
+.dropbtn {
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 110%;
+  left: 0;
+  background: #fff;
+  width: 230px;
+  max-height: 230px;
+  overflow-y: auto;
+  box-shadow: 0 6px 20px rgba(0,0,0,.2);
+  border-radius: 8px;
+  padding: 6px;
+}
+
+.dropdown-content button {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.dropdown-content button:hover {
+  background: #f0f0f0;
+}
+
+/* Desktop hover */
+@media (hover:hover) {
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+}
+
+/* Mobile open */
+.dropdown.open .dropdown-content {
+  display: block;
+}
+
+/* Search */
+.search {
+  display: flex;
+  gap: 6px;
+}
+
+.search input {
+  width: 70px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.search button {
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+/* ===== PDF ===== */
+#pdf-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px 0 20px;
+}
+
+canvas {
+  width: 100%;
+  max-width: 800px;
+  margin: 10px 0;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.15);
+}
+
+@media (max-width:480px) {
+  header h1 { font-size: 16px; }
+  header img { height: 35px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <img src="logo.png" alt="ARTHERMO Logo">
+  <h1>ARTHERMO — Catalogue</h1>
+</header>
+
+<div class="controls">
+  <div class="dropdown">
+    <button class="dropbtn">Categories ▾</button>
+    <div class="dropdown-content" id="category-list"></div>
+  </div>
+
+  <div class="search">
+    <input type="number" id="pageInput" placeholder="Page" min="1">
+    <button onclick="goToPage(Number(pageInput.value))">Go</button>
+  </div>
+</div>
+
+<div id="pdf-container"></div>
+
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.min.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc =
-  'https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.worker.min.js';
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js';
 
 const url = 'catalogue.pdf';
 const container = document.getElementById('pdf-container');
@@ -98,3 +275,5 @@ function goToPage(num) {
   window.scrollBy(0, -130); // header offset
 }
 </script>
+</body>
+</html>
