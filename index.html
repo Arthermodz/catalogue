@@ -167,7 +167,7 @@ canvas {
 
   <div class="search">
     <input type="number" id="pageInput" placeholder="Page" min="1">
-    <button onclick="goToPage(Number(pageInput.value))">Go</button>
+    <button onclick="goToPage(Number(pageInput.value) + 1)">Go</button>
   </div>
 </div>
 
@@ -184,7 +184,6 @@ const container = document.getElementById('pdf-container');
 const categoryList = document.getElementById('category-list');
 const dropdown = document.querySelector('.dropdown');
 const pageInput = document.getElementById('pageInput');
-
 
 let pagePositions = [];
 
@@ -278,6 +277,10 @@ function goToPage(num) {
   });
 }
 </script>
+
+</body>
+</html>
+
 
 </body>
 </html>
