@@ -159,15 +159,15 @@ canvas {
   <h1>ARTHERMO — Catalogue</h1>
 </header>
 
-<div class="search">
-  <input type="number" id="pageInput" placeholder="Page" min="1">
-  <button onclick="goToPage(Number(pageInput.value) + 1)">Go</button>
-</div>
+<div class="controls">
+  <div class="dropdown">
+    <button class="dropbtn">Categories ▾</button>
+    <div class="dropdown-content" id="category-list"></div>
+  </div>
 
   <div class="search">
-    <input type="number" id="pageInput" placeholder="Page" min="1">
-    <button onclick="goToPage(Number(pageInput.value))">Go</button>
-  </div>
+  <input type="number" id="pageInput" placeholder="Page" min="1">
+  <button onclick="goToPage(Number(pageInput.value) + 1)">Go</button>
 </div>
 
 <div id="pdf-container"></div>
