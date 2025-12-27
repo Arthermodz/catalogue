@@ -258,7 +258,7 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
 
       page.render({ canvasContext: ctx, viewport }).promise.then(() => {
         container.appendChild(canvas);
-        pagePositions[num] = canvas.offsetTop;
+        canvas.dataset.page = num;
 
         if(num < pdf.numPages) renderPage(num + 1);
       });
@@ -270,10 +270,18 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
 
 /* Navigation */
 function goToPage(num) {
-  if(!pagePositions[num]) return;
-  window.scrollTo({
-    top: pagePositions[num] - 130,
-    behavior: 'smooth'
+  const target = document.querySelector(`canvas[data-page="${num}"]`);
+  if (!target) return;
+
+  target.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  });
+
+  // Small offset for sticky header
+  window.scrollBy(0, -130);
+}
+
   });
 }
 </script>
