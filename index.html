@@ -166,10 +166,9 @@ canvas {
   </div>
 
   <div class="search">
-  <form id="pageForm">
     <input type="number" id="pageInput" placeholder="Page" min="1">
-    <button type="submit">Go</button>
-  </form>
+    <button onclick="goToPage(Number(pageInput.value))">Go</button>
+  </div>
 </div>
 
 
@@ -278,12 +277,6 @@ function goToPage(num) {
     behavior: 'smooth'
   });
 }
-  const pageForm = document.getElementById('pageForm');
-pageForm.addEventListener('submit', function(e) {
-  e.preventDefault();
-  const pageNum = Number(document.getElementById('pageInput').value) + 1;
-  goToPage(pageNum);
-});
 </script>
 
 </body>
