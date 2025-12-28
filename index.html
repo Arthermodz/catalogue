@@ -276,12 +276,16 @@ function goToPage(num) {
     behavior: 'smooth'
   });
 }
+  document.addEventListener("DOMContentLoaded", () => {
   const pageInput = document.getElementById("pageInput");
 
-pageInput.addEventListener("keydown", function (event) {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    goToPage();
+  if (pageInput) {
+    pageInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        goToPage();
+      }
+    });
   }
 });
 </script>
