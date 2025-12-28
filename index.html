@@ -167,7 +167,7 @@ canvas {
 
   <div class="search">
     <input type="number" id="pageInput" placeholder="Page" min="1">
-    <button onclick="goToPage(Number(pageInput.value) + 1)">Go</button>
+    <button onclick="goToPage(Number(pageInput.value))">Go</button>
   </div>
 </div>
 
@@ -189,37 +189,37 @@ let pagePositions = [];
 
 /* ===== CATEGORIES ===== */
 const categories = {
-  "WINNER": 4,
-  "ELBAHDJA": 6,
-  "FENNEC": 8,
-  "FIORI": 10,
-  "LINE": 12,
-  "RIO": 14,
-  "AZUR": 16,
-  "AURORE": 18,
-  "ECLIPSE": 20,
-  "GHOUFI": 22,
+  "WINNER": 3,
+  "ELBAHDJA": 5,
+  "FENNEC": 7,
+  "FIORI": 9,
+  "LINE": 11,
+  "RIO": 13,
+  "AZUR": 15,
+  "AURORE": 17,
+  "ECLIPSE": 19,
+  "GHOUFI": 21,
 
-  "MITIGEUR CUISINE": 24,
-  "COLONNE DE DOUCHE": 28,
+  "MITIGEUR CUISINE": 23,
+  "COLONNE DE DOUCHE": 27,
 
-  "ROBINET LAVABO": 38,
-  "ROBINET ABLUTION": 39,
-  "ROBINET DOUBLE SERVICE": 42,
-  "ROBINET JARDIN": 43,
+  "ROBINET LAVABO": 37,
+  "ROBINET ABLUTION": 38,
+  "ROBINET DOUBLE SERVICE": 41,
+  "ROBINET JARDIN": 42,
 
-  "FLEXIBLE ET DOUCHETTE": 46,
-  "BONDE POUSSOIRE": 47,
-  "VANNES SPHÉRIQUE": 48,
-  "FLOTTEUR": 50,
-  "CLAPET ANTI-RETOUR": 51,
-  "ROBINET ARRÊT DE GAZ": 52,
-  "FLEXIBLE DE GAZ": 53,
+  "FLEXIBLE ET DOUCHETTE": 45,
+  "BONDE POUSSOIRE": 46,
+  "VANNES SPHÉRIQUE": 47,
+  "FLOTTEUR": 49,
+  "CLAPET ANTI-RETOUR": 50,
+  "ROBINET ARRÊT DE GAZ": 51,
+  "FLEXIBLE DE GAZ": 52,
 
-  "PIÈCES À SERTIR": 54,
-  "PIÈCES À VISSER": 59,
-  "COLLECTEURS": 64,
-  "JEUX DE ROBINET": 66
+  "PIÈCES À SERTIR": 53,
+  "PIÈCES À VISSER": 58,
+  "COLLECTEURS": 63,
+  "JEUX DE ROBINET": 65
 };
 
 /* Toggle dropdown on mobile */
@@ -276,22 +276,7 @@ function goToPage(num) {
     behavior: 'smooth'
   });
 }
-    });
-
 </script>
-
-</body>
-</html>
-<form id="pageForm">
-  <input
-    type="number"
-    id="pageInput"
-    placeholder="Page"
-    inputmode="numeric"
-  />
-  <button type="submit">Go</button>
-</form>
-
 
 </body>
 </html>
