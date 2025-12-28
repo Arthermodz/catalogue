@@ -288,10 +288,31 @@ function goToPage(num) {
     });
   }
 });
+  document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("pageForm");
+  const pageInput = document.getElementById("pageInput");
+
+  if (form && pageInput) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      goToPage();
+    });
+  }
+});
 </script>
 
 </body>
 </html>
+<form id="pageForm">
+  <input
+    type="number"
+    id="pageInput"
+    placeholder="Page"
+    inputmode="numeric"
+  />
+  <button type="submit">Go</button>
+</form>
+
 
 
 </body>
