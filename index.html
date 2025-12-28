@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ARTHERMO — Catalogue</title>
-<input type="number" id="pageInput" placeholder="Page" min="1">
-<button id="goBtn">Go</button>
 
 <style>
 :root { --brand:#221914; }
@@ -278,18 +276,6 @@ function goToPage(num) {
     behavior: 'smooth'
   });
 }
-  // 1. Target the elements you just gave IDs to
-const input = document.getElementById("pageSearch");
-const button = document.getElementById("goBtn");
-
-// 2. Listen for the "keydown" event specifically on that input field
-input.addEventListener("keydown", function(event) {
-    // 3. Check if the key pressed was "Enter"
-    if (event.key === "Enter") {
-        event.preventDefault(); // Prevents unnecessary page reloads
-        button.click();         // Automatically "clicks" your Go button
-    }
-});
 </script>
 
 </body>
