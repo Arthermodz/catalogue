@@ -165,10 +165,10 @@ canvas {
     <div class="dropdown-content" id="category-list"></div>
   </div>
 
-  <div class="search">
-    <input type="number" id="pageInput" placeholder="Page" min="1">
-    <button onclick="goToPage(Number(pageInput.value) + 1)">Go</button>
-  </div>
+  <form id="pageForm">
+  <input type="number" id="pageInput" placeholder="Page" min="1">
+  <button type="submit">Go</button>
+</form>
 </div>
 
 <div id="pdf-container"></div>
@@ -223,9 +223,16 @@ const categories = {
 };
 
 /* Toggle dropdown on mobile */
-document.querySelector('.dropbtn').onclick = () => {
-  dropdown.classList.toggle('open');
-};
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("pageForm");
+
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();  // Prevent form from reloading the page
+      goToPage();          // Trigger goToPage on submit (Enter or click)
+    });
+  }
+});
 
 /* Build category list */
 Object.entries(categories).forEach(([name, page]) => {
@@ -269,12 +276,27 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
 });
 
 /* Navigation */
-function goToPage(num) {
-  if(!pagePositions[num]) return;
-  window.scrollTo({
-    top: pagePositions[num] - 130,
-    behavior: 'smooth'
-  });
+function goToPage() {
+  const pageInput = document.getElementById("pageInput");
+  const page = parseInt(pageInput.value, 10);
+
+  if (isNaN(page) || page < 1 || page > totalPages) return;
+
+  const targetPage = page - PAGE_OFFSET;
+  const PAGE_OFFSET = 1;
+
+  if (targetPage < 0 || targetPage >= totalPages) return;
+
+  const targetCanvas = document.querySelectorAll('canvas')[targetPage];
+
+  if (targetCanvas) {
+    targetCanvas.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+
+    window.scrollBy(0, -130);
+  }
 }
 </script>
 
