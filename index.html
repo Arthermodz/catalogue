@@ -50,17 +50,6 @@ header h1 {
   z-index: 90;
   border-bottom: 1px solid #ddd;
 }
-  .controls {
-  background: #fff;
-  padding: 8px 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  position: sticky;
-  top: 60px;
-  z-index: 90;
-  border-bottom: 1px solid #ddd;
-}
 
 /* Dropdown */
 .dropdown {
@@ -159,10 +148,6 @@ canvas {
 @media (max-width:480px) {
   header h1 { font-size: 16px; }
   header img { height: 35px; }
-  #page-indicator {
-  margin-left: auto;
-  font-size: 13px;
-  color: #666;
 }
 </style>
 </head>
@@ -178,7 +163,6 @@ canvas {
   <div class="dropdown">
     <button class="dropbtn">Categories ▾</button>
     <div class="dropdown-content" id="category-list"></div>
-    <div id="page-indicator">Page 1</div>
   </div>
 
   <div class="search">
@@ -297,19 +281,6 @@ function goToPage(num) {
     behavior: 'smooth'
   });
 }
-  const pageIndicator = document.getElementById("page-indicator");
-
-window.addEventListener("scroll", () => {
-  let current = 1;
-
-  for (let i = 1; i < pagePositions.length; i++) {
-    if (pagePositions[i] - 150 <= window.scrollY) {
-      current = i;
-    }
-  }
-
-  pageIndicator.textContent = `Page ${current}`;
-});
 </script>
 
 </body>
