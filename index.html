@@ -33,7 +33,7 @@ header h1 { font-size: 18px; margin: 0; }
   background: #fff;
   padding: 8px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   gap: 10px;
   position: sticky;
@@ -76,23 +76,6 @@ header h1 { font-size: 18px; margin: 0; }
 }
 .dropdown-content button:hover { background: #f0f0f0; }
 
-/* Search */
-.search { display: flex; gap: 6px; }
-.search input {
-  width: 70px;
-  padding: 6px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-.search button {
-  background: #000;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  cursor: pointer;
-}
-
 /* PDF container */
 #pdf-container {
   display: flex;
@@ -108,6 +91,7 @@ header h1 { font-size: 18px; margin: 0; }
 
 canvas {
   box-shadow: 0 2px 12px rgba(0,0,0,.15);
+  display: block;
 }
 
 /* Arrows */
@@ -136,11 +120,6 @@ canvas {
     <button class="dropbtn">Categories ▾</button>
     <div class="dropdown-content" id="category-list"></div>
   </div>
-
-  <div class="search">
-    <input type="number" id="pageInput" placeholder="Page" min="1">
-    <button id="goBtn">Go</button>
-  </div>
 </div>
 
 <div id="arrows">
@@ -158,8 +137,6 @@ const url = 'catalogue.pdf';
 const container = document.getElementById('pdf-container');
 const categoryList = document.getElementById('category-list');
 const dropdown = document.querySelector('.dropdown');
-const pageInput = document.getElementById('pageInput');
-const goBtn = document.getElementById('goBtn');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 
@@ -170,7 +147,7 @@ let currentPage = 1;
 
 /* ===== CATEGORIES ===== */
 const categories = {
-    "WINNER": 4,
+  "WINNER": 4,
   "ELBAHDJA": 6,
   "FENNEC": 8,
   "FIORI": 10,
@@ -202,7 +179,6 @@ const categories = {
   "COLLECTEURS": 64,
   "JEUX DE ROBINET": 66
 };
-
 /* Dropdown toggle */
 document.querySelector('.dropbtn').onclick = () => dropdown.classList.toggle('open');
 
@@ -225,11 +201,14 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
   pdfDoc = pdf;
   totalPages = pdf.numPages;
 
+  // Preload all pages
+  const loadPromises = [];
   for(let i=1; i<=totalPages; i++){
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     pages[i] = canvas;
-    pdf.getPage(i).then(page => {
+
+    const promise = pdf.getPage(i).then(page => {
       const containerWidth = container.clientWidth;
       let scale;
       if(i === 1 || i === totalPages){ // cover/back
@@ -240,11 +219,12 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
       const viewport = page.getViewport({scale});
       canvas.width = viewport.width;
       canvas.height = viewport.height;
-      page.render({canvasContext: ctx, viewport});
+      return page.render({canvasContext: ctx, viewport}).promise;
     });
+    loadPromises.push(promise);
   }
 
-  showPage(1);
+  Promise.all(loadPromises).then(()=> showPage(1));
 });
 
 /* Show pages (two-page spread) */
@@ -260,16 +240,13 @@ function showPage(num){
   if(currentPage === 1 || currentPage === totalPages){
     wrapper.appendChild(pages[currentPage]);
   } else {
-    // two-page spread, left page is always odd
     const left = getLeftPage(currentPage);
     wrapper.appendChild(pages[left]);
     if(left+1 <= totalPages) wrapper.appendChild(pages[left+1]);
-    currentPage = left; // align arrows & input
+    currentPage = left;
   }
 
   container.appendChild(wrapper);
-
-  pageInput.value = currentPage - 1;
 
   prevBtn.disabled = currentPage === 1;
   nextBtn.disabled = currentPage >= totalPages-1;
@@ -286,14 +263,9 @@ nextBtn.onclick = ()=>{
   showPage(target);
 };
 
-/* Search */
-goBtn.onclick = ()=> showPage(getLeftPage(Number(pageInput.value)+2));
-pageInput.addEventListener('keydown', e=>{
-  if(e.key==='Enter') showPage(getLeftPage(Number(pageInput.value)+2));
-});
-
 /* Responsive resize */
 window.addEventListener('resize', ()=> showPage(currentPage));
 </script>
+
 </body>
 </html>
