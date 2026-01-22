@@ -126,6 +126,19 @@ header h1 { font-size: 18px; margin: 0; }
   header h1 { font-size: 16px; }
   header img { height: 35px; }
 }
+  #flipbook {
+  background: #ddd;
+}
+
+#flipbook .page {
+  width: 100%;
+  height: 100%;
+}
+
+#flipbook .page canvas {
+  width: 100%;
+  height: 100%;
+}
 </style>
 </head>
 
@@ -171,6 +184,22 @@ const pageInput = document.getElementById('pageInput');
 const goBtn = document.getElementById('goBtn');
 
 let pdfDoc = null;
+  pdfjsLib.getDocument(url).promise.then(pdf => {
+  pdfDoc = pdf;
+
+  // Create flipbook AFTER PDF is loaded
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    renderPage(pageNum);
+  }
+
+  // Initialize flipbook ONLY after pages exist
+  $('#flipbook').turn({
+    width: 900,
+    height: 600,
+    autoCenter: true,
+    display: window.innerWidth < 768 ? 'single' : 'double'
+  });
+});
 
 /* ===== CATEGORIES ===== */
 const categories = {
@@ -234,7 +263,11 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
       canvas.height = viewport.height;
 
       page.render({ canvasContext: ctx, viewport }).promise.then(() => {
-        pages[num - 1] = canvas;
+        const pageDiv = document.createElement('div');
+        pageDiv.className = 'page';
+        pageDiv.appendChild(canvas);
+        pages[num - 1] = pageDiv;
+        pages.forEach(p => flipbook.appendChild(p));
 
         if (num < pdf.numPages) {
           renderPage(num + 1);
@@ -260,6 +293,29 @@ function goToPage(catalogPage) {
   if ($('#flipbook').turn('is')) {
     $('#flipbook').turn('page', realPage);
   }
+}
+  function renderPage(pageNum) {
+  pdfDoc.getPage(pageNum).then(page => {
+    const scale = 1.5;
+    const viewport = page.getViewport({ scale });
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    page.render({
+      canvasContext: context,
+      viewport: viewport
+    });
+
+    const pageDiv = document.createElement('div');
+    pageDiv.className = 'page';
+    pageDiv.appendChild(canvas);
+
+    flipbook.appendChild(pageDiv);
+  });
 }
 
 /* Go button */
