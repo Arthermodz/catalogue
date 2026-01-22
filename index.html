@@ -25,7 +25,6 @@ header {
   top: 0;
   z-index: 100;
 }
-
 header img { height: 40px; }
 header h1 { font-size: 18px; margin: 0; }
 
@@ -99,9 +98,22 @@ header h1 { font-size: 18px; margin: 0; }
   display: flex;
   justify-content: center;
   padding: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-canvas { border-radius: 6px; box-shadow: 0 2px 12px rgba(0,0,0,.15); max-width: 800px; width: 100%; }
+.page-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+canvas {
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.15);
+  max-width: 390px; /* two pages side by side fits 800px */
+  width: 100%;
+}
 
 /* Arrows */
 #arrows { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; }
@@ -115,6 +127,7 @@ canvas { border-radius: 6px; box-shadow: 0 2px 12px rgba(0,0,0,.15); max-width: 
   font-size: 18px;
 }
 .arrow-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
 </style>
 </head>
 <body>
@@ -160,11 +173,11 @@ const nextBtn = document.getElementById('nextBtn');
 let pdfDoc = null;
 let currentPage = 1;
 let totalPages = 0;
-let canvas = null;
+let pages = []; // store canvases
 
 /* ===== CATEGORIES ===== */
 const categories = {
-  "WINNER": 4,
+   "WINNER": 4,
   "ELBAHDJA": 6,
   "FENNEC": 8,
   "FIORI": 10,
@@ -206,10 +219,7 @@ document.querySelector('.dropbtn').onclick = () => {
 Object.entries(categories).forEach(([name, page]) => {
   const btn = document.createElement('button');
   btn.textContent = name;
-  btn.onclick = () => {
-    showPage(page);
-    dropdown.classList.remove('open');
-  };
+  btn.onclick = () => showPage(page);
   categoryList.appendChild(btn);
 });
 
@@ -218,40 +228,69 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
   pdfDoc = pdf;
   totalPages = pdf.numPages;
 
-  canvas = document.createElement('canvas');
-  container.appendChild(canvas);
+  for(let i=1; i<=totalPages; i++){
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    pages[i] = canvas;
+    pdf.getPage(i).then(page => {
+      const viewport = page.getViewport({ scale: 1.5 });
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      page.render({ canvasContext: ctx, viewport });
+    });
+  }
 
   showPage(1);
 });
 
-/* Show page function */
-function showPage(num) {
-  if(num < 1 || num > totalPages) return;
+/* Show pages function (2-page spread) */
+function showPage(num){
+  if(num < 1) num = 1;
+  if(num > totalPages) num = totalPages;
 
   currentPage = num;
+  container.innerHTML = '';
 
-  pdfDoc.getPage(currentPage).then(page => {
-    const viewport = page.getViewport({ scale: 1.5 });
-    const ctx = canvas.getContext('2d');
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
-    page.render({ canvasContext: ctx, viewport });
-  });
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('page-wrapper');
 
-  pageInput.value = currentPage - 1; // offset if cover = page 3
+  // cover page alone
+  if(currentPage === 1){
+    wrapper.appendChild(pages[1]);
+  }
+  // back page alone
+  else if(currentPage === totalPages){
+    wrapper.appendChild(pages[totalPages]);
+  }
+  else{
+    wrapper.appendChild(pages[currentPage]);
+    if(currentPage+1 <= totalPages) wrapper.appendChild(pages[currentPage+1]);
+  }
+
+  container.appendChild(wrapper);
+
+  pageInput.value = currentPage -1;
   prevBtn.disabled = currentPage === 1;
-  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.disabled = currentPage >= totalPages-1 ? false : false;
 }
 
 /* Arrow buttons */
-prevBtn.onclick = () => showPage(currentPage - 1);
-nextBtn.onclick = () => showPage(currentPage + 1);
+prevBtn.onclick = () => {
+  if(currentPage === 1) return;
+  currentPage = (currentPage===2) ? 1 : currentPage-2;
+  showPage(currentPage);
+};
+nextBtn.onclick = () => {
+  if(currentPage === totalPages) return;
+  currentPage = (currentPage===1) ? 2 : currentPage+2;
+  if(currentPage>totalPages-1) currentPage = totalPages-1;
+  showPage(currentPage);
+};
 
 /* Page input */
-goBtn.onclick = () => showPage(Number(pageInput.value) + 1);
-
-pageInput.addEventListener('keydown', e => {
-  if(e.key === 'Enter') showPage(Number(pageInput.value) + 1);
+goBtn.onclick = () => showPage(Number(pageInput.value)+1);
+pageInput.addEventListener('keydown', e=>{
+  if(e.key==='Enter') showPage(Number(pageInput.value)+1);
 });
 </script>
 </body>
