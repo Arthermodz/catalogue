@@ -99,19 +99,17 @@ header h1 { font-size: 18px; margin: 0; }
   justify-content: center;
   padding: 20px;
   flex-wrap: wrap;
-  gap: 10px;
 }
 
 .page-wrapper {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 0; /* pages stick together */
 }
 
 canvas {
-  border-radius: 6px;
   box-shadow: 0 2px 12px rgba(0,0,0,.15);
-  max-width: 390px; /* two pages side by side fits 800px */
+  max-width: 400px;
   width: 100%;
 }
 
@@ -177,7 +175,7 @@ let pages = []; // store canvases
 
 /* ===== CATEGORIES ===== */
 const categories = {
-   "WINNER": 4,
+ "WINNER": 4,
   "ELBAHDJA": 6,
   "FENNEC": 8,
   "FIORI": 10,
@@ -219,7 +217,7 @@ document.querySelector('.dropbtn').onclick = () => {
 Object.entries(categories).forEach(([name, page]) => {
   const btn = document.createElement('button');
   btn.textContent = name;
-  btn.onclick = () => showPage(page);
+  btn.onclick = () => showPage(page + 1); // offset by 1 for cover
   categoryList.appendChild(btn);
 });
 
@@ -233,7 +231,7 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
     const ctx = canvas.getContext('2d');
     pages[i] = canvas;
     pdf.getPage(i).then(page => {
-      const viewport = page.getViewport({ scale: 1.5 });
+      const viewport = page.getViewport({ scale: 2.2 }); // bigger zoom
       canvas.width = viewport.width;
       canvas.height = viewport.height;
       page.render({ canvasContext: ctx, viewport });
