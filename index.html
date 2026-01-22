@@ -46,14 +46,12 @@ header h1 { font-size: 18px; margin: 0; }
 
 /* Dropdown */
 .dropdown { position: relative; }
-
 .dropbtn {
   background: var(--brand);
   color: #fff;
   border: none;
   border-radius: 20px;
   padding: 6px 16px;
-  font-size: 14px;
   cursor: pointer;
 }
 
@@ -63,35 +61,34 @@ header h1 { font-size: 18px; margin: 0; }
   top: 110%;
   left: 0;
   background: #fff;
-  width: 230px;
-  max-height: 230px;
+  width: 240px;
+  max-height: 260px;
   overflow-y: auto;
   box-shadow: 0 6px 20px rgba(0,0,0,.2);
   border-radius: 8px;
   padding: 6px;
 }
 
-.dropdown-content button {
-  width: 100%;
-  background: none;
-  border: none;
-  text-align: left;
-  padding: 8px 10px;
-  font-size: 14px;
-  cursor: pointer;
-  border-radius: 6px;
-}
-
-.dropdown-content button:hover { background: #f0f0f0; }
-
-@media (hover:hover) {
-  .dropdown:hover .dropdown-content { display: block; }
-}
-
 .dropdown.open .dropdown-content { display: block; }
 
+.dropdown-content button {
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-content button:hover {
+  background: #f0f0f0;
+}
+
 /* Search */
-.search { display: flex; gap: 6px; }
+.search {
+  display: flex;
+  gap: 6px;
+}
 
 .search input {
   width: 70px;
@@ -110,32 +107,23 @@ header h1 { font-size: 18px; margin: 0; }
 }
 
 /* ===== FLIPBOOK ===== */
+#flipbook-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}
+
 #flipbook {
-  width: 90vw;
-  max-width: 900px;
-  height: 80vh;
-  margin: 20px auto;
-}
-
-#flipbook canvas {
-  width: 100%;
-  height: 100%;
-}
-
-@media (max-width:480px) {
-  header h1 { font-size: 16px; }
-  header img { height: 35px; }
-}
-  #flipbook {
-  background: #ddd;
+  width: 800px;
+  height: 520px;
 }
 
 #flipbook .page {
-  width: 100%;
-  height: 100%;
+  background: #fff;
+  box-shadow: 0 4px 15px rgba(0,0,0,.3);
 }
 
-#flipbook .page canvas {
+canvas {
   width: 100%;
   height: 100%;
 }
@@ -145,7 +133,7 @@ header h1 { font-size: 18px; margin: 0; }
 <body>
 
 <header>
-  <img src="logo.png" alt="ARTHERMO Logo">
+  <img src="logo.png">
   <h1>ARTHERMO — Catalogue</h1>
 </header>
 
@@ -161,15 +149,13 @@ header h1 { font-size: 18px; margin: 0; }
   </div>
 </div>
 
-<div id="flipbook"></div>
+<div id="flipbook-wrapper">
+  <div id="flipbook"></div>
+</div>
 
-<!-- jQuery (REQUIRED) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-
-<!-- Turn.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
-
-<!-- PDF.js -->
+<!-- LIBRARIES -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4/turn.min.js"></script>
 <script src="https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.min.js"></script>
 
 <script>
@@ -177,29 +163,11 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.worker.min.js';
 
 const url = 'catalogue.pdf';
-const flipbook = document.getElementById('flipbook');
+const flipbook = $('#flipbook');
 const categoryList = document.getElementById('category-list');
 const dropdown = document.querySelector('.dropdown');
 const pageInput = document.getElementById('pageInput');
 const goBtn = document.getElementById('goBtn');
-
-let pdfDoc = null;
-  pdfjsLib.getDocument(url).promise.then(pdf => {
-  pdfDoc = pdf;
-
-  // Create flipbook AFTER PDF is loaded
-  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-    renderPage(pageNum);
-  }
-
-  // Initialize flipbook ONLY after pages exist
-  $('#flipbook').turn({
-    width: 900,
-    height: 600,
-    autoCenter: true,
-    display: window.innerWidth < 768 ? 'single' : 'double'
-  });
-});
 
 /* ===== CATEGORIES ===== */
 const categories = {
@@ -212,27 +180,10 @@ const categories = {
   "AZUR": 16,
   "AURORE": 18,
   "ECLIPSE": 20,
-  "GHOUFI": 22,
-  "MITIGEUR CUISINE": 24,
-  "COLONNE DE DOUCHE": 28,
-  "ROBINET LAVABO": 38,
-  "ROBINET ABLUTION": 39,
-  "ROBINET DOUBLE SERVICE": 42,
-  "ROBINET JARDIN": 43,
-  "FLEXIBLE ET DOUCHETTE": 46,
-  "BONDE POUSSOIRE": 47,
-  "VANNES SPHÉRIQUE": 48,
-  "FLOTTEUR": 50,
-  "CLAPET ANTI-RETOUR": 51,
-  "ROBINET ARRÊT DE GAZ": 52,
-  "FLEXIBLE DE GAZ": 53,
-  "PIÈCES À SERTIR": 54,
-  "PIÈCES À VISSER": 59,
-  "COLLECTEURS": 64,
-  "JEUX DE ROBINET": 66
+  "GHOUFI": 22
 };
 
-/* Dropdown mobile toggle */
+/* Dropdown */
 document.querySelector('.dropbtn').onclick = () => {
   dropdown.classList.toggle('open');
 };
@@ -242,91 +193,50 @@ Object.entries(categories).forEach(([name, page]) => {
   const btn = document.createElement('button');
   btn.textContent = name;
   btn.onclick = () => {
-    goToPage(page);
+    flipbook.turn('page', page);
     dropdown.classList.remove('open');
   };
   categoryList.appendChild(btn);
 });
 
-/* Load PDF & build flipbook */
+/* Load PDF and build flipbook */
 pdfjsLib.getDocument(url).promise.then(pdf => {
-  pdfDoc = pdf;
-  let pages = [];
 
-  const renderPage = num => {
-    pdf.getPage(num).then(page => {
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const pageDiv = $('<div class="page"></div>');
+    flipbook.append(pageDiv);
+
+    pdf.getPage(i).then(page => {
       const viewport = page.getViewport({ scale: 1.5 });
       const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-
       canvas.width = viewport.width;
       canvas.height = viewport.height;
-
-      page.render({ canvasContext: ctx, viewport }).promise.then(() => {
-        const pageDiv = document.createElement('div');
-        pageDiv.className = 'page';
-        pageDiv.appendChild(canvas);
-        pages[num - 1] = pageDiv;
-        pages.forEach(p => flipbook.appendChild(p));
-
-        if (num < pdf.numPages) {
-          renderPage(num + 1);
-        } else {
-          pages.forEach(c => flipbook.appendChild(c));
-
-          $('#flipbook').turn({
-            width: flipbook.clientWidth,
-            height: flipbook.clientHeight,
-            autoCenter: true
-          });
-        }
+      page.render({
+        canvasContext: canvas.getContext('2d'),
+        viewport
       });
+      pageDiv.append(canvas);
     });
-  };
+  }
 
-  renderPage(1);
+  flipbook.turn({
+    width: 800,
+    height: 520,
+    autoCenter: true
+  });
 });
 
-/* Navigation */
-function goToPage(catalogPage) {
-  const realPage = catalogPage + 1; // cover offset
-  if ($('#flipbook').turn('is')) {
-    $('#flipbook').turn('page', realPage);
-  }
-}
-  function renderPage(pageNum) {
-  pdfDoc.getPage(pageNum).then(page => {
-    const scale = 1.5;
-    const viewport = page.getViewport({ scale });
-
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-
-    page.render({
-      canvasContext: context,
-      viewport: viewport
-    });
-
-    const pageDiv = document.createElement('div');
-    pageDiv.className = 'page';
-    pageDiv.appendChild(canvas);
-
-    flipbook.appendChild(pageDiv);
-  });
-}
-
 /* Go button */
-goBtn.onclick = () => {
-  if (pageInput.value) goToPage(Number(pageInput.value));
-};
+goBtn.addEventListener('click', () => {
+  const page = Number(pageInput.value) + 1; // cover offset
+  flipbook.turn('page', page);
+});
 
 /* Enter key */
 pageInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && pageInput.value) {
-    goToPage(Number(pageInput.value));
+  if (e.key === 'Enter') {
+    const page = Number(pageInput.value) + 1;
+    flipbook.turn('page', page);
   }
 });
 </script>
