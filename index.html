@@ -27,8 +27,15 @@ header {
   z-index: 100;
 }
 
-header img { height: 40px; }
-header h1 { font-size: 18px; margin: 0; }
+header img {
+  height: 40px;
+}
+
+header h1 {
+  font-size: 18px;
+  margin: 0;
+  white-space: nowrap;
+}
 
 /* ===== CONTROLS ===== */
 .controls {
@@ -45,13 +52,17 @@ header h1 { font-size: 18px; margin: 0; }
 }
 
 /* Dropdown */
-.dropdown { position: relative; }
+.dropdown {
+  position: relative;
+}
+
 .dropbtn {
   background: var(--brand);
   color: #fff;
   border: none;
   border-radius: 20px;
   padding: 6px 16px;
+  font-size: 14px;
   cursor: pointer;
 }
 
@@ -61,27 +72,39 @@ header h1 { font-size: 18px; margin: 0; }
   top: 110%;
   left: 0;
   background: #fff;
-  width: 240px;
-  max-height: 260px;
+  width: 230px;
+  max-height: 230px;
   overflow-y: auto;
   box-shadow: 0 6px 20px rgba(0,0,0,.2);
   border-radius: 8px;
   padding: 6px;
 }
 
-.dropdown.open .dropdown-content { display: block; }
-
 .dropdown-content button {
   width: 100%;
-  border: none;
   background: none;
-  padding: 8px;
+  border: none;
   text-align: left;
+  padding: 8px 10px;
+  font-size: 14px;
   cursor: pointer;
+  border-radius: 6px;
 }
 
 .dropdown-content button:hover {
   background: #f0f0f0;
+}
+
+/* Desktop hover */
+@media (hover:hover) {
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+}
+
+/* Mobile open */
+.dropdown.open .dropdown-content {
+  display: block;
 }
 
 /* Search */
@@ -106,26 +129,25 @@ header h1 { font-size: 18px; margin: 0; }
   cursor: pointer;
 }
 
-/* ===== FLIPBOOK ===== */
-#flipbook-wrapper {
+/* ===== PDF ===== */
+#pdf-container {
   display: flex;
-  justify-content: center;
-  padding: 20px 0;
-}
-
-#flipbook {
-  width: 800px;
-  height: 520px;
-}
-
-#flipbook .page {
-  background: #fff;
-  box-shadow: 0 4px 15px rgba(0,0,0,.3);
+  flex-direction: column;
+  align-items: center;
+  padding: 5px 0 20px;
 }
 
 canvas {
   width: 100%;
-  height: 100%;
+  max-width: 800px;
+  margin: 10px 0;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.15);
+}
+
+@media (max-width:480px) {
+  header h1 { font-size: 16px; }
+  header img { height: 35px; }
 }
 </style>
 </head>
@@ -133,7 +155,7 @@ canvas {
 <body>
 
 <header>
-  <img src="logo.png">
+  <img src="logo.png" alt="ARTHERMO Logo">
   <h1>ARTHERMO — Catalogue</h1>
 </header>
 
@@ -145,29 +167,30 @@ canvas {
 
   <div class="search">
     <input type="number" id="pageInput" placeholder="Page" min="1">
-    <button id="goBtn">Go</button>
+    <button onclick="goToPage(Number(pageInput.value) + 1)">Go</button>
   </div>
 </div>
 
-<div id="flipbook-wrapper">
-  <div id="flipbook"></div>
-</div>
+<div id="pdf-container"></div>
 
-<!-- LIBRARIES -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4/turn.min.js"></script>
+<!-- PDF.js -->
 <script src="https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.min.js"></script>
-
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.worker.min.js';
 
 const url = 'catalogue.pdf';
-const flipbook = $('#flipbook');
+const container = document.getElementById('pdf-container');
 const categoryList = document.getElementById('category-list');
 const dropdown = document.querySelector('.dropdown');
 const pageInput = document.getElementById('pageInput');
-const goBtn = document.getElementById('goBtn');
+  pageInput.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    goToPage(Number(this.value) + 1);
+  }
+});
+
+let pagePositions = [];
 
 /* ===== CATEGORIES ===== */
 const categories = {
@@ -180,65 +203,84 @@ const categories = {
   "AZUR": 16,
   "AURORE": 18,
   "ECLIPSE": 20,
-  "GHOUFI": 22
+  "GHOUFI": 22,
+
+  "MITIGEUR CUISINE": 24,
+  "COLONNE DE DOUCHE": 28,
+
+  "ROBINET LAVABO": 38,
+  "ROBINET ABLUTION": 39,
+  "ROBINET DOUBLE SERVICE": 42,
+  "ROBINET JARDIN": 43,
+
+  "FLEXIBLE ET DOUCHETTE": 46,
+  "BONDE POUSSOIRE": 47,
+  "VANNES SPHÉRIQUE": 48,
+  "FLOTTEUR": 50,
+  "CLAPET ANTI-RETOUR": 51,
+  "ROBINET ARRÊT DE GAZ": 52,
+  "FLEXIBLE DE GAZ": 53,
+
+  "PIÈCES À SERTIR": 54,
+  "PIÈCES À VISSER": 59,
+  "COLLECTEURS": 64,
+  "JEUX DE ROBINET": 66
 };
 
-/* Dropdown */
+/* Toggle dropdown on mobile */
 document.querySelector('.dropbtn').onclick = () => {
   dropdown.classList.toggle('open');
 };
 
-/* Build categories */
+/* Build category list */
 Object.entries(categories).forEach(([name, page]) => {
   const btn = document.createElement('button');
   btn.textContent = name;
   btn.onclick = () => {
-    flipbook.turn('page', page);
+    goToPage(page);
     dropdown.classList.remove('open');
   };
   categoryList.appendChild(btn);
 });
 
-/* Load PDF and build flipbook */
+/* Load PDF */
 pdfjsLib.getDocument(url).promise.then(pdf => {
 
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const pageDiv = $('<div class="page"></div>');
-    flipbook.append(pageDiv);
+  const renderPage = (num) => {
+    pdf.getPage(num).then(page => {
 
-    pdf.getPage(i).then(page => {
-      const viewport = page.getViewport({ scale: 1.5 });
+      const containerWidth = container.clientWidth;
+      let scale = 1.5;
+      if(containerWidth <= 480) scale = 2.0;
+      if(containerWidth <= 360) scale = 2.5;
+
+      const viewport = page.getViewport({ scale });
+
       const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
       canvas.width = viewport.width;
       canvas.height = viewport.height;
-      page.render({
-        canvasContext: canvas.getContext('2d'),
-        viewport
+
+      page.render({ canvasContext: ctx, viewport }).promise.then(() => {
+        container.appendChild(canvas);
+        pagePositions[num] = canvas.offsetTop;
+
+        if(num < pdf.numPages) renderPage(num + 1);
       });
-      pageDiv.append(canvas);
     });
-  }
+  };
 
-  flipbook.turn({
-    width: 800,
-    height: 520,
-    autoCenter: true
+  renderPage(1);
+});
+
+/* Navigation */
+function goToPage(num) {
+  if(!pagePositions[num]) return;
+  window.scrollTo({
+    top: pagePositions[num] - 130,
+    behavior: 'smooth'
   });
-});
-
-/* Go button */
-goBtn.addEventListener('click', () => {
-  const page = Number(pageInput.value) + 1; // cover offset
-  flipbook.turn('page', page);
-});
-
-/* Enter key */
-pageInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    const page = Number(pageInput.value) + 1;
-    flipbook.turn('page', page);
-  }
-});
+}
 </script>
 
 </body>
