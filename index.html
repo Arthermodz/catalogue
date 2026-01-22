@@ -27,15 +27,8 @@ header {
   z-index: 100;
 }
 
-header img {
-  height: 40px;
-}
-
-header h1 {
-  font-size: 18px;
-  margin: 0;
-  white-space: nowrap;
-}
+header img { height: 40px; }
+header h1 { font-size: 18px; margin: 0; }
 
 /* ===== CONTROLS ===== */
 .controls {
@@ -52,9 +45,7 @@ header h1 {
 }
 
 /* Dropdown */
-.dropdown {
-  position: relative;
-}
+.dropdown { position: relative; }
 
 .dropbtn {
   background: var(--brand);
@@ -91,27 +82,16 @@ header h1 {
   border-radius: 6px;
 }
 
-.dropdown-content button:hover {
-  background: #f0f0f0;
-}
+.dropdown-content button:hover { background: #f0f0f0; }
 
-/* Desktop hover */
 @media (hover:hover) {
-  .dropdown:hover .dropdown-content {
-    display: block;
-  }
+  .dropdown:hover .dropdown-content { display: block; }
 }
 
-/* Mobile open */
-.dropdown.open .dropdown-content {
-  display: block;
-}
+.dropdown.open .dropdown-content { display: block; }
 
 /* Search */
-.search {
-  display: flex;
-  gap: 6px;
-}
+.search { display: flex; gap: 6px; }
 
 .search input {
   width: 70px;
@@ -129,20 +109,17 @@ header h1 {
   cursor: pointer;
 }
 
-/* ===== PDF ===== */
-#pdf-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 5px 0 20px;
+/* ===== FLIPBOOK ===== */
+#flipbook {
+  width: 90vw;
+  max-width: 900px;
+  height: 80vh;
+  margin: 20px auto;
 }
 
-canvas {
+#flipbook canvas {
   width: 100%;
-  max-width: 800px;
-  margin: 10px 0;
-  border-radius: 6px;
-  box-shadow: 0 2px 12px rgba(0,0,0,.15);
+  height: 100%;
 }
 
 @media (max-width:480px) {
@@ -167,30 +144,33 @@ canvas {
 
   <div class="search">
     <input type="number" id="pageInput" placeholder="Page" min="1">
-    <button onclick="goToPage(Number(pageInput.value) + 1)">Go</button>
+    <button id="goBtn">Go</button>
   </div>
 </div>
 
-<div id="pdf-container"></div>
+<div id="flipbook"></div>
+
+<!-- jQuery (REQUIRED) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<!-- Turn.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
 
 <!-- PDF.js -->
 <script src="https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.min.js"></script>
+
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.worker.min.js';
 
 const url = 'catalogue.pdf';
-const container = document.getElementById('pdf-container');
+const flipbook = document.getElementById('flipbook');
 const categoryList = document.getElementById('category-list');
 const dropdown = document.querySelector('.dropdown');
 const pageInput = document.getElementById('pageInput');
-  pageInput.addEventListener("keydown", function (e) {
-  if (e.key === "Enter") {
-    goToPage(Number(this.value) + 1);
-  }
-});
+const goBtn = document.getElementById('goBtn');
 
-let pagePositions = [];
+let pdfDoc = null;
 
 /* ===== CATEGORIES ===== */
 const categories = {
@@ -204,15 +184,12 @@ const categories = {
   "AURORE": 18,
   "ECLIPSE": 20,
   "GHOUFI": 22,
-
   "MITIGEUR CUISINE": 24,
   "COLONNE DE DOUCHE": 28,
-
   "ROBINET LAVABO": 38,
   "ROBINET ABLUTION": 39,
   "ROBINET DOUBLE SERVICE": 42,
   "ROBINET JARDIN": 43,
-
   "FLEXIBLE ET DOUCHETTE": 46,
   "BONDE POUSSOIRE": 47,
   "VANNES SPHÉRIQUE": 48,
@@ -220,19 +197,18 @@ const categories = {
   "CLAPET ANTI-RETOUR": 51,
   "ROBINET ARRÊT DE GAZ": 52,
   "FLEXIBLE DE GAZ": 53,
-
   "PIÈCES À SERTIR": 54,
   "PIÈCES À VISSER": 59,
   "COLLECTEURS": 64,
   "JEUX DE ROBINET": 66
 };
 
-/* Toggle dropdown on mobile */
+/* Dropdown mobile toggle */
 document.querySelector('.dropbtn').onclick = () => {
   dropdown.classList.toggle('open');
 };
 
-/* Build category list */
+/* Build categories */
 Object.entries(categories).forEach(([name, page]) => {
   const btn = document.createElement('button');
   btn.textContent = name;
@@ -243,29 +219,34 @@ Object.entries(categories).forEach(([name, page]) => {
   categoryList.appendChild(btn);
 });
 
-/* Load PDF */
+/* Load PDF & build flipbook */
 pdfjsLib.getDocument(url).promise.then(pdf => {
+  pdfDoc = pdf;
+  let pages = [];
 
-  const renderPage = (num) => {
+  const renderPage = num => {
     pdf.getPage(num).then(page => {
-
-      const containerWidth = container.clientWidth;
-      let scale = 1.5;
-      if(containerWidth <= 480) scale = 2.0;
-      if(containerWidth <= 360) scale = 2.5;
-
-      const viewport = page.getViewport({ scale });
-
+      const viewport = page.getViewport({ scale: 1.5 });
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
+
       canvas.width = viewport.width;
       canvas.height = viewport.height;
 
       page.render({ canvasContext: ctx, viewport }).promise.then(() => {
-        container.appendChild(canvas);
-        pagePositions[num] = canvas.offsetTop;
+        pages[num - 1] = canvas;
 
-        if(num < pdf.numPages) renderPage(num + 1);
+        if (num < pdf.numPages) {
+          renderPage(num + 1);
+        } else {
+          pages.forEach(c => flipbook.appendChild(c));
+
+          $('#flipbook').turn({
+            width: flipbook.clientWidth,
+            height: flipbook.clientHeight,
+            autoCenter: true
+          });
+        }
       });
     });
   };
@@ -274,13 +255,24 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
 });
 
 /* Navigation */
-function goToPage(num) {
-  if(!pagePositions[num]) return;
-  window.scrollTo({
-    top: pagePositions[num] - 130,
-    behavior: 'smooth'
-  });
+function goToPage(catalogPage) {
+  const realPage = catalogPage + 1; // cover offset
+  if ($('#flipbook').turn('is')) {
+    $('#flipbook').turn('page', realPage);
+  }
 }
+
+/* Go button */
+goBtn.onclick = () => {
+  if (pageInput.value) goToPage(Number(pageInput.value));
+};
+
+/* Enter key */
+pageInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && pageInput.value) {
+    goToPage(Number(pageInput.value));
+  }
+});
 </script>
 
 </body>
