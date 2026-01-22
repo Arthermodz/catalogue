@@ -103,14 +103,11 @@ header h1 { font-size: 18px; margin: 0; }
 
 .page-wrapper {
   display: flex;
-  justify-content: center;
   gap: 0; /* pages stick together */
 }
 
 canvas {
   box-shadow: 0 2px 12px rgba(0,0,0,.15);
-  width: 100%;
-  max-width: 400px; /* two pages side by side fit ~800px */
 }
 
 /* Arrows */
@@ -125,12 +122,6 @@ canvas {
   font-size: 18px;
 }
 .arrow-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-@media (max-width:480px){
-  .page-wrapper { flex-direction: column; }
-  canvas { max-width: 100%; }
-  #arrows { gap: 10px; }
-}
 </style>
 </head>
 <body>
@@ -161,8 +152,7 @@ canvas {
 
 <script src="https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.min.js"></script>
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  'https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.worker.min.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.worker.min.js';
 
 const url = 'catalogue.pdf';
 const container = document.getElementById('pdf-container');
@@ -180,7 +170,7 @@ let currentPage = 1;
 
 /* ===== CATEGORIES ===== */
 const categories = {
- "WINNER": 4,
+    "WINNER": 4,
   "ELBAHDJA": 6,
   "FENNEC": 8,
   "FIORI": 10,
@@ -212,7 +202,7 @@ const categories = {
   "COLLECTEURS": 64,
   "JEUX DE ROBINET": 66
 };
-  
+
 /* Dropdown toggle */
 document.querySelector('.dropbtn').onclick = () => dropdown.classList.toggle('open');
 
@@ -220,26 +210,37 @@ document.querySelector('.dropbtn').onclick = () => dropdown.classList.toggle('op
 Object.entries(categories).forEach(([name, page]) => {
   const btn = document.createElement('button');
   btn.textContent = name;
-  btn.onclick = () => showPage(page + 1); // offset by cover
+  btn.onclick = () => showPage(getLeftPage(page));
   categoryList.appendChild(btn);
 });
+
+/* Helper: get left page of spread */
+function getLeftPage(page){
+  if(page === 1 || page === totalPages) return page; // cover/back
+  return (page % 2 === 0) ? page - 1 : page; // left page for even
+}
 
 /* Load PDF */
 pdfjsLib.getDocument(url).promise.then(pdf => {
   pdfDoc = pdf;
   totalPages = pdf.numPages;
 
-  for(let i=1;i<=totalPages;i++){
+  for(let i=1; i<=totalPages; i++){
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     pages[i] = canvas;
-    pdf.getPage(i).then(page=>{
-      const containerWidth = window.innerWidth;
-      let scale = containerWidth > 480 ? 2.2 : (containerWidth / 400);
+    pdf.getPage(i).then(page => {
+      const containerWidth = container.clientWidth;
+      let scale;
+      if(i === 1 || i === totalPages){ // cover/back
+        scale = containerWidth / page.getViewport({scale:1}).width;
+      } else {
+        scale = (containerWidth / 2) / page.getViewport({scale:1}).width; // two pages fit
+      }
       const viewport = page.getViewport({scale});
       canvas.width = viewport.width;
       canvas.height = viewport.height;
-      page.render({canvasContext:ctx, viewport});
+      page.render({canvasContext: ctx, viewport});
     });
   }
 
@@ -250,55 +251,49 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
 function showPage(num){
   if(num < 1) num = 1;
   if(num > totalPages) num = totalPages;
-
   currentPage = num;
-  container.innerHTML = '';
 
+  container.innerHTML = '';
   const wrapper = document.createElement('div');
   wrapper.classList.add('page-wrapper');
 
-  const isMobile = window.innerWidth <= 480;
-
-  if(currentPage === 1 || isMobile){ 
-    wrapper.appendChild(pages[1]); // cover or mobile single page
-  } else if(currentPage === totalPages){
-    wrapper.appendChild(pages[totalPages]); // back page
-  } else {
-    // Make sure left page is odd
-    if(currentPage % 2 === 0) currentPage -= 1;
+  if(currentPage === 1 || currentPage === totalPages){
     wrapper.appendChild(pages[currentPage]);
-    if(currentPage+1 <= totalPages) wrapper.appendChild(pages[currentPage+1]);
+  } else {
+    // two-page spread, left page is always odd
+    const left = getLeftPage(currentPage);
+    wrapper.appendChild(pages[left]);
+    if(left+1 <= totalPages) wrapper.appendChild(pages[left+1]);
+    currentPage = left; // align arrows & input
   }
 
   container.appendChild(wrapper);
 
   pageInput.value = currentPage - 1;
+
   prevBtn.disabled = currentPage === 1;
   nextBtn.disabled = currentPage >= totalPages-1;
 }
 
 /* Arrows */
 prevBtn.onclick = ()=>{
-  if(currentPage === 1) return;
-  currentPage = (currentPage === 2) ? 1 : currentPage-2;
-  showPage(currentPage);
+  let target = currentPage === 1 ? 1 : currentPage - 2;
+  showPage(target);
 };
 nextBtn.onclick = ()=>{
-  if(currentPage >= totalPages) return;
-  currentPage = (currentPage === 1) ? 2 : currentPage+2;
-  if(currentPage > totalPages-1) currentPage = totalPages-1;
-  showPage(currentPage);
+  let target = currentPage + 2;
+  if(target > totalPages-1) target = totalPages-1;
+  showPage(target);
 };
 
 /* Search */
-goBtn.onclick = ()=> showPage(Number(pageInput.value)+2);
+goBtn.onclick = ()=> showPage(getLeftPage(Number(pageInput.value)+2));
 pageInput.addEventListener('keydown', e=>{
-  if(e.key==='Enter') showPage(Number(pageInput.value)+2);
+  if(e.key==='Enter') showPage(getLeftPage(Number(pageInput.value)+2));
 });
 
 /* Responsive resize */
 window.addEventListener('resize', ()=> showPage(currentPage));
 </script>
-
 </body>
 </html>
