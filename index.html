@@ -186,7 +186,7 @@ const dropdown = document.querySelector('.dropdown');
 const pageInput = document.getElementById('pageInput');
   pageInput.addEventListener("keydown", function (e) {
   if (e.key === "Enter") {
-    goToPage(Number(this.value) + 1);
+    goToPage(Number(this.value) + 3);
   }
 });
 
@@ -204,27 +204,28 @@ const categories = {
   "AURORE": 18,
   "ECLIPSE": 20,
   "GHOUFI": 22,
+  "GHOUFI": 24,
 
-  "MITIGEUR CUISINE": 24,
-  "COLONNE DE DOUCHE": 28,
+  "MITIGEUR CUISINE": 26,
+  "COLONNE DE DOUCHE": 30,
 
-  "ROBINET LAVABO": 38,
-  "ROBINET ABLUTION": 39,
-  "ROBINET DOUBLE SERVICE": 42,
-  "ROBINET JARDIN": 43,
+  "ROBINET LAVABO": 40,
+  "ROBINET ABLUTION": 41,
+  "ROBINET DOUBLE SERVICE": 44,
+  "ROBINET JARDIN": 45,
 
-  "FLEXIBLE ET DOUCHETTE": 46,
-  "BONDE POUSSOIRE": 47,
-  "VANNES SPHÉRIQUE": 48,
-  "FLOTTEUR": 50,
-  "CLAPET ANTI-RETOUR": 51,
-  "ROBINET ARRÊT DE GAZ": 52,
-  "FLEXIBLE DE GAZ": 53,
+  "FLEXIBLE ET DOUCHETTE": 48,
+  "BONDE POUSSOIRE": 49,
+  "VANNES SPHÉRIQUE": 50,
+  "FLOTTEUR": 52,
+  "CLAPET ANTI-RETOUR": 53,
+  "ROBINET ARRÊT DE GAZ": 54,
+  "FLEXIBLE DE GAZ": 55,
 
-  "PIÈCES À SERTIR": 54,
-  "PIÈCES À VISSER": 59,
-  "COLLECTEURS": 64,
-  "JEUX DE ROBINET": 66
+  "PIÈCES À SERTIR": 56,
+  "PIÈCES À VISSER": 61,
+  "COLLECTEURS": 66,
+  "JEUX DE ROBINET": 68
 };
 
 /* Toggle dropdown on mobile */
