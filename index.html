@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ARTHERMO — Catalogue</title>
+
 <style>
 :root { --brand:#221914; }
 
@@ -13,7 +14,7 @@ body {
   background: #f4f4f4;
 }
 
-/* HEADER */
+/* ===== HEADER ===== */
 header {
   background: var(--brand);
   color: #fff;
@@ -25,10 +26,18 @@ header {
   top: 0;
   z-index: 100;
 }
-header img { height: 40px; }
-header h1 { font-size: 18px; margin: 0; }
 
-/* CONTROLS */
+header img {
+  height: 40px;
+}
+
+header h1 {
+  font-size: 18px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* ===== CONTROLS ===== */
 .controls {
   background: #fff;
   padding: 8px;
@@ -43,47 +52,74 @@ header h1 { font-size: 18px; margin: 0; }
 }
 
 /* Dropdown */
-.dropdown { position: relative; }
+.dropdown {
+  position: relative;
+}
+
 .dropbtn {
   background: var(--brand);
   color: #fff;
   border: none;
   border-radius: 20px;
   padding: 6px 16px;
+  font-size: 14px;
   cursor: pointer;
 }
+
 .dropdown-content {
   display: none;
   position: absolute;
   top: 110%;
   left: 0;
   background: #fff;
-  width: 240px;
-  max-height: 260px;
+  width: 230px;
+  max-height: 230px;
   overflow-y: auto;
   box-shadow: 0 6px 20px rgba(0,0,0,.2);
   border-radius: 8px;
   padding: 6px;
 }
-.dropdown.open .dropdown-content { display: block; }
+
 .dropdown-content button {
   width: 100%;
-  border: none;
   background: none;
-  padding: 8px;
+  border: none;
   text-align: left;
+  padding: 8px 10px;
+  font-size: 14px;
   cursor: pointer;
+  border-radius: 6px;
 }
-.dropdown-content button:hover { background: #f0f0f0; }
+
+.dropdown-content button:hover {
+  background: #f0f0f0;
+}
+
+/* Desktop hover */
+@media (hover:hover) {
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+}
+
+/* Mobile open */
+.dropdown.open .dropdown-content {
+  display: block;
+}
 
 /* Search */
-.search { display: flex; gap: 6px; }
+.search {
+  display: flex;
+  gap: 6px;
+}
+
 .search input {
   width: 70px;
   padding: 6px;
   border-radius: 6px;
   border: 1px solid #ccc;
 }
+
 .search button {
   background: #000;
   color: #fff;
@@ -93,41 +129,29 @@ header h1 { font-size: 18px; margin: 0; }
   cursor: pointer;
 }
 
-/* PDF container */
+/* ===== PDF ===== */
 #pdf-container {
   display: flex;
-  justify-content: center;
-  padding: 20px;
-  flex-wrap: wrap;
-}
-
-.page-wrapper {
-  display: flex;
-  justify-content: center;
-  gap: 0; /* pages stick together */
+  flex-direction: column;
+  align-items: center;
+  padding: 5px 0 20px;
 }
 
 canvas {
-  box-shadow: 0 2px 12px rgba(0,0,0,.15);
-  max-width: 400px;
   width: 100%;
-}
-
-/* Arrows */
-#arrows { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; }
-.arrow-btn {
-  background: var(--brand);
-  color: #fff;
-  border: none;
+  max-width: 800px;
+  margin: 10px 0;
   border-radius: 6px;
-  padding: 8px 16px;
-  cursor: pointer;
-  font-size: 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.15);
 }
-.arrow-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+@media (max-width:480px) {
+  header h1 { font-size: 16px; }
+  header img { height: 35px; }
+}
 </style>
 </head>
+
 <body>
 
 <header>
@@ -143,17 +167,13 @@ canvas {
 
   <div class="search">
     <input type="number" id="pageInput" placeholder="Page" min="1">
-    <button id="goBtn">Go</button>
+    <button onclick="goToPage(Number(pageInput.value) + 1)">Go</button>
   </div>
-</div>
-
-<div id="arrows">
-  <button id="prevBtn" class="arrow-btn">⬅ Prev</button>
-  <button id="nextBtn" class="arrow-btn">Next ➡</button>
 </div>
 
 <div id="pdf-container"></div>
 
+<!-- PDF.js -->
 <script src="https://unpkg.com/pdfjs-dist@3.9.179/build/pdf.min.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -164,18 +184,17 @@ const container = document.getElementById('pdf-container');
 const categoryList = document.getElementById('category-list');
 const dropdown = document.querySelector('.dropdown');
 const pageInput = document.getElementById('pageInput');
-const goBtn = document.getElementById('goBtn');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
+  pageInput.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    goToPage(Number(this.value) + 1);
+  }
+});
 
-let pdfDoc = null;
-let currentPage = 1;
-let totalPages = 0;
-let pages = []; // store canvases
+let pagePositions = [];
 
 /* ===== CATEGORIES ===== */
 const categories = {
-    "WINNER": 4,
+  "WINNER": 4,
   "ELBAHDJA": 6,
   "FENNEC": 8,
   "FIORI": 10,
@@ -208,89 +227,61 @@ const categories = {
   "JEUX DE ROBINET": 66
 };
 
-/* Dropdown toggle */
+/* Toggle dropdown on mobile */
 document.querySelector('.dropbtn').onclick = () => {
   dropdown.classList.toggle('open');
 };
 
-/* Build categories */
+/* Build category list */
 Object.entries(categories).forEach(([name, page]) => {
   const btn = document.createElement('button');
   btn.textContent = name;
-  btn.onclick = () => showPage(page + 1); // offset by 1 for cover
+  btn.onclick = () => {
+    goToPage(page);
+    dropdown.classList.remove('open');
+  };
   categoryList.appendChild(btn);
 });
 
 /* Load PDF */
 pdfjsLib.getDocument(url).promise.then(pdf => {
-  pdfDoc = pdf;
-  totalPages = pdf.numPages;
 
-  for(let i=1; i<=totalPages; i++){
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    pages[i] = canvas;
-    pdf.getPage(i).then(page => {
-      const viewport = page.getViewport({ scale: 2.2 }); // bigger zoom
+  const renderPage = (num) => {
+    pdf.getPage(num).then(page => {
+
+      const containerWidth = container.clientWidth;
+      let scale = 1.5;
+      if(containerWidth <= 480) scale = 2.0;
+      if(containerWidth <= 360) scale = 2.5;
+
+      const viewport = page.getViewport({ scale });
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
       canvas.width = viewport.width;
       canvas.height = viewport.height;
-      page.render({ canvasContext: ctx, viewport });
+
+      page.render({ canvasContext: ctx, viewport }).promise.then(() => {
+        container.appendChild(canvas);
+        pagePositions[num] = canvas.offsetTop;
+
+        if(num < pdf.numPages) renderPage(num + 1);
+      });
     });
-  }
+  };
 
-  showPage(1);
+  renderPage(1);
 });
 
-/* Show pages function (2-page spread) */
-function showPage(num){
-  if(num < 1) num = 1;
-  if(num > totalPages) num = totalPages;
-
-  currentPage = num;
-  container.innerHTML = '';
-
-  const wrapper = document.createElement('div');
-  wrapper.classList.add('page-wrapper');
-
-  // cover page alone
-  if(currentPage === 1){
-    wrapper.appendChild(pages[1]);
-  }
-  // back page alone
-  else if(currentPage === totalPages){
-    wrapper.appendChild(pages[totalPages]);
-  }
-  else{
-    wrapper.appendChild(pages[currentPage]);
-    if(currentPage+1 <= totalPages) wrapper.appendChild(pages[currentPage+1]);
-  }
-
-  container.appendChild(wrapper);
-
-  pageInput.value = currentPage -1;
-  prevBtn.disabled = currentPage === 1;
-  nextBtn.disabled = currentPage >= totalPages-1 ? false : false;
+/* Navigation */
+function goToPage(num) {
+  if(!pagePositions[num]) return;
+  window.scrollTo({
+    top: pagePositions[num] - 130,
+    behavior: 'smooth'
+  });
 }
-
-/* Arrow buttons */
-prevBtn.onclick = () => {
-  if(currentPage === 1) return;
-  currentPage = (currentPage===2) ? 1 : currentPage-2;
-  showPage(currentPage);
-};
-nextBtn.onclick = () => {
-  if(currentPage === totalPages) return;
-  currentPage = (currentPage===1) ? 2 : currentPage+2;
-  if(currentPage>totalPages-1) currentPage = totalPages-1;
-  showPage(currentPage);
-};
-
-/* Page input */
-goBtn.onclick = () => showPage(Number(pageInput.value)+2);
-pageInput.addEventListener('keydown', e=>{
-  if(e.key==='Enter') showPage(Number(pageInput.value)+2);
-});
 </script>
+
 </body>
 </html>
-
